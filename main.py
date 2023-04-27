@@ -1,6 +1,8 @@
 import math
 
 from Iris import Iris
+from Centroid import Centroid
+
 # Wprowadzanie danych przy odpaleniu programu z terminala
 
 # import sys
@@ -16,15 +18,6 @@ pathCSV = 'Data/groupset.txt'
 k = 3
 
 
-def calculate(iris1, iris2):
-    length = 0
-    if len(iris1.vector) != len(iris2.vector):
-        quit("Given vectors are not the same length")
-    for i in range(len(iris1.vector)):
-        length = math.sqrt(math.pow(iris1.vector[i] - iris2.vector[i], 2))
-    return length
-
-
 def sortline(v_line):
     v_type = "default"
     info = v_line.split(",")
@@ -34,7 +27,7 @@ def sortline(v_line):
             wector.append(float(info[i]))
         except ValueError:
             v_type = info[i]
-    iris1 = Iris(wector, v_type, 0)
+    iris1 = Iris(wector, v_type, 0, 0)
     return iris1
 
 
@@ -44,3 +37,85 @@ def readfile(path):
     for line in ffile:
         arr.append(sortline(line.replace("\n", "")))
     return arr
+
+
+def createcentroids(groups):
+    tmp = list()
+    for i in range(len(groups)):
+        if i % k == 0: # popraw, maja byc 3 a nie milion
+            tmp.append(groups[i])
+    arr = list()
+    for i in range(len(tmp)):
+        centroid = Centroid(tmp[i].vector, i)
+        arr.append(centroid)
+    return arr
+
+
+def calculate(iris, centroid):
+    length = 0
+    if len(iris.vector) != len(centroid.vector):
+        quit("Given vectors are not the same length")
+    for i in range(len(iris.vector)):
+        length = math.sqrt(math.pow(iris.vector[i] - centroid.vector[i], 2))
+    return length
+
+
+def group(centroids, groups):
+    print("")
+    for iris in groups:
+        howfar = list()
+        currentid = 0
+        for centroid in centroids:
+            howfar.append(calculate(iris, centroid))
+            print(f'C{centroid.v_id} distance: {calculate(iris, centroid)}')
+            if calculate(iris, centroid) == min(howfar):
+                currentid = centroid.v_id
+        print(f'{iris.vector} has been assigned to C{currentid}')
+        iris.setbelongsto(currentid)
+    print("")
+
+
+def changecentroidsvalue(centroids, groups):
+    for centroid in centroids:
+        counter = 0
+        newvector = list()
+        for i in range(len(centroid.vector)):
+            newvector.append(0)
+        for iris in groups:
+            if centroid.v_id == iris.belongsto:
+                counter += 1
+        for iris in groups:
+            if centroid.v_id == iris.belongsto:
+                for i in range(len(iris.vector)):
+                    newvector[i] += iris.vector[i]
+        for i in range(len(newvector)):
+            newvector[i] = newvector[i] / counter
+        centroid.setvector(newvector)
+
+
+def kmeans(centroids, groups):
+    onceagain = True
+    while onceagain:
+        oldvalues = list()
+        newvalues = list()
+        for iris in groups:
+            oldvalues.append(iris.belongsto)
+        group(centroids, groups)
+        for iris in groups:
+            newvalues.append(iris.belongsto)
+        if oldvalues == newvalues:
+            print("\nGrouping has ended\n")
+            return
+        else:
+            answer = input("Would you like to group again? (y/n)")
+            if answer == "n":
+                onceagain = False
+            else:
+                changecentroidsvalue(centroids, groups)
+
+# main
+
+
+groupset = readfile(pathCSV)
+centroidset = createcentroids(groupset)
+kmeans(centroidset, groupset)
