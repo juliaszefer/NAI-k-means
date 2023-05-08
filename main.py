@@ -41,12 +41,14 @@ def readfile(path):
 
 def createcentroids(groups):
     tmp = list()
-    for i in range(len(groups)):
-        if i % k == 0: # popraw, maja byc 3 a nie milion
-            tmp.append(groups[i])
+    elnumber = int(len(groups)/k)
+    g = 0
+    for i in range(k):
+        tmp.append(groups[g])
+        g += elnumber
     arr = list()
     for i in range(len(tmp)):
-        centroid = Centroid(tmp[i].vector, i)
+        centroid = Centroid(tmp[i].vector, i+1)
         arr.append(centroid)
     return arr
 
@@ -95,7 +97,10 @@ def changecentroidsvalue(centroids, groups):
 
 def kmeans(centroids, groups):
     onceagain = True
+    session = 1
     while onceagain:
+        print(f"\n{session} session")
+        session += 1
         oldvalues = list()
         newvalues = list()
         for iris in groups:
@@ -119,3 +124,6 @@ def kmeans(centroids, groups):
 groupset = readfile(pathCSV)
 centroidset = createcentroids(groupset)
 kmeans(centroidset, groupset)
+
+for iris in groupset:
+    print(iris.__str__())

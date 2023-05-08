@@ -7,3 +7,6 @@ class Iris:
 
     def setbelongsto(self, newcentroid):
         self.belongsto = newcentroid
+
+    def __str__(self):
+        return f"vector: {self.vector}, belongs to: {self.belongsto}"
